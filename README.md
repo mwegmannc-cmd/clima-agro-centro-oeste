@@ -4,7 +4,7 @@ Dashboard interativo que monitora clima e chuva em cinco polos produtores de
 soja/milho do Centro-Oeste — **Sorriso (MT)**, **Rondonópolis (MT)**,
 **Primavera do Leste (MT)**, **Rio Verde (GO)** e **Dourados (MS)** —
 comparando com o mesmo período do ano passado e com a média histórica dos
-últimos 5 anos, para apoiar leitura de janela de plantio e condições de
+últimos 10 anos, para apoiar a leitura de janela de plantio e condições de
 lavoura.
 
 Dados: [Open-Meteo](https://open-meteo.com) — API pública, gratuita, sem
@@ -12,58 +12,34 @@ necessidade de chave/token.
 
 ## Como executar localmente
 
-1. (Recomendado) crie um ambiente virtual:
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
 
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate        # Windows
-   # source .venv/bin/activate   # macOS/Linux
-   ```
-
-2. Instale as dependências:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Rode o app:
-
-   ```bash
-   streamlit run app.py
-   ```
-
-4. O navegador abrirá automaticamente em `http://localhost:8501`.
+O navegador abre em `http://localhost:8501`.
 
 ## O que o app mostra
 
-- **Seletor de polo produtor**: 5 municípios-chave do agronegócio no MT/GO/MS.
-- **Previsão dos próximos 7 dias**: temperatura máx/mín e condição de chuva.
-- **Chuva acumulada (30 dias observados)**: comparada ao mesmo período do ano
-  passado e à média histórica de 5 anos — indicador direto de umidade do
-  solo / condição para plantio.
-- **Chuva prevista (7 dias)**: acumulado futuro vs. mesmo período do ano
-  passado.
-- **Veranico (dry spell)**: dias consecutivos sem chuva relevante (< 1 mm),
-  com projeção de quanto pode se estender caso a previsão se confirme. O
-  alerta textual só soa em fases sensíveis do calendário agrícola (plantio,
-  desenvolvimento) — na entressafra (estação seca), o mesmo veranico é
-  tratado como normal.
-- **Painel de Insights Agro**: cards com os desvios acima e um card textual
-  combinando os indicadores em uma leitura agronômica (ex.: "chuva 30%
-  abaixo do ano passado durante o plantio da soja — possível atraso na
-  janela").
-- **Gráficos**: chuva acumulada (curva, este ano x ano passado x média),
-  temperatura (linha) e chuva diária (barras), todos com uma linha vertical
-  marcando "hoje" (fronteira entre dados observados e previsão).
+- **Semáforo de insights** (🟢 / 🟡 / 🔴) com leitura textual combinando os indicadores.
+- **Chuva acumulada** na janela retroativa (15, 30, 60 ou 90 dias) vs. ano
+  passado e média de 10 anos, com **ranking** do ano na série histórica.
+- **Janela de plantio**: chuva dos últimos 15 dias vs. um mínimo configurável.
+- **Veranico**: dias secos consecutivos, com projeção pela previsão. O alerta só
+  soa em fases sensíveis do calendário agrícola; na entressafra é tratado como normal.
+- **Calor**: dias da previsão acima do limite configurável (padrão 35°C).
+- **Previsão de 7 dias** em cards responsivos (funcionam bem no celular).
+- **Gráficos**: chuva acumulada (com faixa mín–máx histórica), chuva por ano,
+  temperatura e chuva diária.
+- **Comparar polos**: os 5 polos lado a lado (carregado sob demanda).
+- **Link compartilhável** (`?cidade=Dourados+(MS)`) e **download CSV**.
 
 ## Notas técnicas
 
-- Uma única chamada à API de previsão (`api.open-meteo.com`) traz os últimos
-  30 dias observados + 7 dias de previsão via o parâmetro `past_days`.
-- Ano passado e média histórica vêm da API de arquivo
-  (`archive-api.open-meteo.com`), com dados reais observados.
-- Cache de 1h (dados atuais) e 6h (histórico) via `st.cache_data`.
-- As fases do calendário agrícola (plantio, desenvolvimento, colheita,
-  entressafra) são aproximações indicativas por mês — não substituem
+- Parâmetros agronômicos (mínimo de chuva para plantio, limite de calor, dias de
+  veranico) são **heurísticas ajustáveis** na barra lateral — não substituem
   recomendação agronômica local, que varia por cultivar, latitude e safra.
-- Botão "Atualizar dados" na barra lateral limpa o cache manualmente.
+- Datas calculadas no fuso de cada cidade (o servidor da nuvem roda em UTC).
+- Histórico baixado com concorrência baixa e cache de 24h; a API pública limita
+  requisições simultâneas, então o app falha de forma graciosa e tenta de novo.
+- Fases do calendário agrícola são aproximações indicativas por mês.
